@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Roda Keberuntungan - Demo Hiburan</title>
+    <style>
+        * {
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Poppins', 'Roboto', system-ui, sans-serif;
+            background: linear-gradient(145deg, #1a472a 0%, #0e2a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* KOTAK PERINGATAN ANTI JUDI */
+        .warning-banner {
+            background: #2c1e0f;
+            border-left: 8px solid #f5b042;
+            color: #ffecb3;
+            padding: 12px 20px;
+            border-radius: 60px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            backdrop-filter: blur(2px);
+        }
+
+        .warning-banner span {
+            font-size: 1.2rem;
+            margin-right: 8px;
+        }
+
+        .container {
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(3px);
+            border-radius: 70px;
+            padding: 25px 20px 35px 20px;
+            box-shadow: 0 25px 40px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.1);
+            transition: all 0.2s;
+        }
+
+        .spinner-card {
+            background: #fef7e0;
+            border-radius: 60px;
+            padding: 20px 20px 30px;
+            box-shadow: inset 0 0 0 2px rgba(255,245,190,0.8), 0 20px 35px rgba(0,0,0,0.4);
+            text-align: center;
+        }
+
+        h1 {
+            margin: 0 0 8px 0;
+            font-size: 2rem;
+            background: linear-gradient(135deg, #ffd966, #ffb347);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            letter-spacing: 1px;
+        }
+
+        .sub {
+            color: #5a3e1b;
+            font-weight: 600;
+            margin-bottom: 25px;
+            font-size: 0.85rem;
+            background: #fff0c0;
+            display: inline-block;
+            padding: 4px 16px;
+            border-radius: 40px;
+        }
+
+        /* CANVAS RODA */
+        .canvas-wrapper {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            margin: 10px 0 15px;
+        }
+
+        canvas {
+            background: #faf2dd;
+            border-radius: 50%;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.5), 0 0 0 10px #ffefb0, 0 0 0 14px #c28a40;
+            transition: box-shadow 0.2s;
+            width: 100%;
+            height: auto;
+            max-width: 450px;
+            cursor: pointer;
+        }
+
+        /* tombol dan info */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 18px;
+            margin: 30px 10px 15px;
+        }
+
+        button {
+            background: #ffcd7e;
+            border: none;
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 12px 28px;
+            border-radius: 50px;
+            color: #3b2a1f;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.2s;
+            box-shadow: 0 5px 0 #b4621a;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #b4621a;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            transform: translateY(0);
+            cursor: not-allowed;
+            filter: grayscale(0.1);
+        }
+
+        .reset-btn {
+            background: #b0c4b1;
+            color: #2c3e2b;
+            box-shadow: 0 5px 0 #6f5e3a;
+        }
+
+        .result-area {
+            background: #2d2418e0;
+            margin-top: 25px;
+            padding: 12px 16px;
+            border-radius: 60px;
+            color: #f9eec1;
+            font-weight: bold;
+            backdrop-filter: blur(8px);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .prize-highlight {
+            background: #f3b33d;
+            color: #281c0a;
+            padding: 6px 18px;
+            border-radius: 50px;
+            font-size: 1.3rem;
+            display: inline-block;
+        }
+
+        .footer-note {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 20px;
+            color: #ddcca5;
+            border-top: 1px dashed #ddcca580;
+            padding-top: 12px;
+        }
+
+        @media (max-width: 550px) {
+            .container {
+                padding: 15px 12px 25px;
+            }
+            button {
+                padding: 8px 18px;
+                font-size: 1rem;
+            }
+            .result-area {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="spinner-card">
+        <!-- PERINGATAN VISUAL BAHWA INI BUKAN JUDI -->
+        <div class="warning-banner">
+            <span>⚠️</span> DEMO INTERAKTIF UNTUK HIBURAN SAJA — BUKAN PERJUDIAN <span>🎭</span>
+        </div>
+
+        <h1>🎡 RODA KEBERUNTUNGAN 🎡</h1>
+        <div class="sub">✨ putar untuk senang-senang ✨</div>
+
+        <div class="canvas-wrapper">
+            <canvas id="wheelCanvas" width="500" height="500" style="width:100%; height:auto; max-width:500px; aspect-ratio:1/1"></canvas>
+        </div>
+
+        <div class="controls">
+            <button id="spinBtn">🎲 PUTAR RODA 🎲</button>
+            <button id="resetBtn" class="reset-btn">⟳ RESET STATISTIK</button>
+        </div>
+
+        <div class="result-area" id="resultMessage">
+            🎯 Klik PUTAR untuk mencoba keberuntunganmu
+        </div>
+
+        <div class="footer-note">
+            💡 Catatan: Setiap putaran bersifat acak dan hanya untuk kesenangan. Tidak ada transaksi uang, 
+            tidak ada taruhan. Hasil tidak mempengaruhi keadaan nyata — jadilah bijak.
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---------- DATA HADIAH (hanya hiburan, nilai simbolis) ----------
+        const SEGMENTS = [
+            { name: "🍭 PERMEN",     color: "#F9A26C", value: "Hadiah Manis" },
+            { name: "📖 BUKU",       color: "#6C9EBF", value: "Ilmu Baru" },
+            { name: "🎬 FILM",       color: "#E8B86B", value: "Movie Time" },
+            { name: "🧘 RELAKS",     color: "#7EB09E", value: "Meditasi" },
+            { name: "🍫 COKELAT",    color: "#D98C5F", value: "Snack Ceria" },
+            { name: "🎧 MUSIK",      color: "#A67C8E", value: "Playlist Seru" },
+            { name: "☕ KOPI",       color: "#BC9A6C", value: "Energi Plus" },
+            { name: "🏆 JACKPOT",    color: "#E8C45A", value: "★ JACKPOT SIMBOLIS ★" },
+            { name: "🎨 KREATIF",    color: "#75A9A9", value: "Warna-warni" },
+            { name: "⭐ SENYUM",      color: "#F4BF7A", value: "Kebaikan Hati" },
+            { name: "🌿 SEHAT",      color: "#7CB083", value: "Vitamin C" },
+            { name: "🎮 GAME",        color: "#B48E6D", value: "Bonus Level" }
+        ];
+
+        // jumlah segmen
+        const SEGMENT_COUNT = SEGMENTS.length;
+        const ANGLE_PER_SEGMENT = (Math.PI * 2) / SEGMENT_COUNT;
+
+        // status roda & animasi
+        let currentRotation = 0.0;       // radian
+        let spinning = false;
+        let animationId = null;
+        let spinStartTime = 0;
+        let spinDuration = 1800;          // ms
+        let spinStartRotation = 0;
+        let spinTargetDelta = 0;           // tambahan rotasi total (rad)
+        
+        // statistik sederhana (untuk menunjukkan frekuensi, tapi tanpa insentif judi)
+        let spinCount = 0;
+        let lastResultIndex = -1;
+        let resultsHistory = [];    // menyimpan nama segmen terakhir (max 10)
+        
+        // elemen canvas
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const spinBtn = document.getElementById('spinBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const resultDiv = document.getElementById('resultMessage');
+        
+        // ukuran canvas & properti
+        let width = 500, height = 500;
+        let centerX = 250, centerY = 250, radius = 230;
+        
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            // menjaga resolusi canvas tetap 500x500 untuk kualitas
+            canvas.width = 500;
+            canvas.height = 500;
+            width = 500;
+            height = 500;
+            centerX = 250;
+            centerY = 250;
+            radius = 230;
+            drawWheel();
+        }
+        
+        // fungsi untuk menggambar jarum/indikator tetap
+        function drawPointer() {
+            // menggambar segitiga indikator di bagian atas (12 jam) canvas
+            const pointerX = centerX;
+            const pointerY = centerY - radius - 12;
+            ctx.save();
+            ctx.shadowBlur = 0;
+            ctx.beginPath();
+            ctx.moveTo(pointerX - 14, pointerY);
+            ctx.lineTo(pointerX, pointerY - 22);
+            ctx.lineTo(pointerX + 14, pointerY);
+            ctx.fillStyle = "#FFD966";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(pointerX - 10, pointerY);
+            ctx.lineTo(pointerX, pointerY - 16);
+            ctx.lineTo(pointerX + 10, pointerY);
+            ctx.fillStyle = "#DAA520";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(pointerX, pointerY - 4, 6, 0, Math.PI*2);
+            ctx.fillStyle = "#E63946";
+            ctx.fill();
+            ctx.fillStyle = "white";
+            ctx.font = "bold 20px 'Segoe UI'";
+            ctx.shadowBlur = 0;
+            ctx.fillText("⬆️", pointerX-10, pointerY-6);
+            ctx.restore();
+        }
+        
+        // menggambar roda berdasarkan currentRotation
+        function drawWheel() {
+            if (!ctx) return;
+            ctx.clearRect(0, 0, width, height);
+            
+            // latar belakang transparan (canvas sudah bulat)
+            for (let i = 0; i < SEGMENT_COUNT; i++) {
+                const start = i * ANGLE_PER_SEGMENT + currentRotation;
+                const end = start + ANGLE_PER_SEGMENT;
+                const segment = SEGMENTS[i];
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, start, end);
+                ctx.closePath();
+                ctx.fillStyle = segment.color;
+                ctx.fill();
+                ctx.save();
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = "#FFE7B0";
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+                ctx.restore();
+                
+                // gambar teks di tengah segmen
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(start + ANGLE_PER_SEGMENT / 2);
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                const textRadius = radius * 0.68;
+                let label = segment.name;
+                if (label.length > 6) label = label.slice(0,5)+"..";
+                ctx.font = `bold ${Math.max(14, Math.min(22, radius * 0.09))}px "Segoe UI", "Poppins"`;
+                ctx.fillStyle = "#1F2A0E";
+                ctx.shadowBlur = 0;
+                ctx.fillText(label, textRadius, 5);
+                ctx.restore();
+            }
+            
+            // lingkaran tengah
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 32, 0, Math.PI*2);
+            ctx.fillStyle = "#FFD966";
+            ctx.shadowBlur = 6;
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 22, 0, Math.PI*2);
+            ctx.fillStyle = "#DAA520";
+            ctx.fill();
+            ctx.fillStyle = "#332211";
+            ctx.font = "bold 30px monospace";
+            ctx.fillText("🎲", centerX-18, centerY+10);
+            
+            // gambar pointer statis
+            drawPointer();
+        }
+        
+        // fungsi untuk mendapatkan indeks segmen berdasarkan rotasi (jarum mengarah ke atas = sudut -PI/2)
+        // jarum tetap di 12 jam (sudut -PI/2). Kita hitung segmen mana yang posisi tengahnya paling dekat dengan arah jarum.
+        function getCurrentSegmentIndex(rotationRad) {
+            // arah jarum tetap: vector (0, -1) -> sudut -PI/2 atau 3*PI/2
+            const pointerAngle = -Math.PI / 2;   // pointing UP
+            // cari segmen yang memuat sudut pointer dalam koordinat roda
+            // transformasi: untuk suatu segmen ke-i, batas sudut dari start sampai end (start = i*anglePerSeg + rotationRad)
+            for (let i = 0; i < SEGMENT_COUNT; i++) {
+                let start = i * ANGLE_PER_SEGMENT + rotationRad;
+                let end = start + ANGLE_PER_SEGMENT;
+                // normalisasi pointerAngle ke range [0, 2pi)
+                let normPointer = pointerAngle;
+                while(normPointer < 0) normPointer += Math.PI*2;
+                while(normPointer >= Math.PI*2) normPointer -= Math.PI*2;
+                let normStart = start;
+                while(normStart < 0) normStart += Math.PI*2;
+                let normEnd = end;
+                while(normEnd < 0) normEnd += Math.PI*2;
+                if (normStart < normEnd) {
+                    if (normPointer >= normStart && normPointer < normEnd) return i;
+                } else {
+                    // segmen melewati 0 rad
+                    if (normPointer >= normStart || normPointer < normEnd) return i;
+                }
+            }
+            // fallback (jarang)
+            return 0;
+        }
+        
+        // Memperbarui tampilan hasil dan statistik ramah (tanpa elemen judi)
+        function updateResultDisplay(segmentIndex) {
+            const prize = SEGMENTS[segmentIndex];
+            spinCount++;
+            lastResultIndex = segmentIndex;
+            resultsHistory.unshift(prize.name);
+            if (resultsHistory.length > 8) resultsHistory.pop();
+            
+            let historyStr = resultsHistory.slice(0,5).join(' · ');
+            if (historyStr === "") historyStr = "belum ada putaran";
+            
+            resultDiv.innerHTML = `
+                <span>🎉 HASIL: </span>
+                <span class="prize-highlight">${prize.name} — ${prize.value}</span>
+                <span style="font-size:0.8rem;"> ✨ (Putaran ke-${spinCount})</span>
+                <div style="font-size:0.75rem; margin-top:6px;">📋 Riwayat: ${historyStr}</div>
+            `;
+            // sedikit efek getar ramah (bukan judi)
+            const prizeSpan = document.querySelector('.prize-highlight');
+            if(prizeSpan) {
+                prizeSpan.style.transform = "scale(1.03)";
+                setTimeout(()=>{ if(prizeSpan) prizeSpan.style.transform = ""; }, 200);
+            }
+        }
+        
+        // animasi spin (easeOutCubic)
+        function animateSpin(now) {
+            const elapsed = now - spinStartTime;
+            let t = Math.min(1, elapsed / spinDuration);
+            // easing cubic out
+            const easeOut = 1 - Math.pow(1 - t, 3);
+            const currentAdded = spinTargetDelta * easeOut;
+            currentRotation = spinStartRotation + currentAdded;
+            // normalisasi rotasi
+            currentRotation = currentRotation % (Math.PI * 2);
+            drawWheel();
+            
+            if (t >= 1) {
+                // selesai spin
+                cancelAnimationFrame(animationId);
+                spinning = false;
+                animationId = null;
+                // pastikan rotasi final tepat (tapi tidak perlu mengubah)
+                currentRotation = (spinStartRotation + spinTargetDelta) % (Math.PI * 2);
+                drawWheel();
+                // cari segmen yang terpilih
+                const finalIdx = getCurrentSegmentIndex(currentRotation);
+                updateResultDisplay(finalIdx);
+                // aktifkan tombol
+                spinBtn.disabled = false;
+                resetBtn.disabled = false;
+            } else {
+                animationId = requestAnimationFrame(animateSpin);
+            }
+        }
+        
+        // Fungsi putar roda dengan random putaran tambahan (fair, tidak bisa dimanipulasi)
+        function spinWheel() {
+            if (spinning) return;
+            
+            // reset animasi jika ada
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            
+            spinning = true;
+            spinBtn.disabled = true;
+            resetBtn.disabled = true;
+            
+            // update pesan sementara
+            resultDiv.innerHTML = "🌀 RODA BERPUTAR... Tunggu sebentar 🌀";
+            
+            // random spin: total putaran antara 5 sampai 12 putaran penuh + offset random halus
+            const fullRotations = 6 + Math.floor(Math.random() * 8);  // 6-13 putaran penuh
+            const extraRad = Math.random() * Math.PI * 2;   // tambahan acak 0-2pi
+            let deltaRad = (fullRotations * 2 * Math.PI) + extraRad;
+            // pastikan delta rad positif dan cukup besar untuk animasi smooth
+            spinTargetDelta = deltaRad;
+            spinStartRotation = currentRotation;
+            spinStartTime = performance.now();
+            
+            animationId = requestAnimationFrame(animateSpin);
+        }
+        
+        // Reset statistik (tanpa mengganggu posisi roda, hanya data riwayat)
+        function resetStats() {
+            if (spinning) return;
+            spinCount = 0;
+            lastResultIndex = -1;
+            resultsHistory = [];
+            resultDiv.innerHTML = "🧹 Statistik direset! Roda masih di posisi terakhir. Klik PUTAR untuk bermain lagi 🧹";
+            // efek visual singkat
+            const tempMsg = resultDiv.innerHTML;
+            setTimeout(() => {
+                if(!spinning) resultDiv.innerHTML = "🎯 Klik PUTAR untuk mencoba keberuntunganmu";
+            }, 1800);
+        }
+        
+        // opsional: reset total (posisi roda acak juga? tidak, biarkan tetapi tidak menggoda judi)
+        // namun pengguna bisa mereset statistik saja
+        
+        // tambahan efek mengingatkan bahwa judi itu merugikan (pop up ringan sekali)
+        function showReminder() {
+            if(spinCount > 0 && spinCount % 5 === 0 && spinCount !== 0) {
+                // hanya nampilin tooltip lembut tidak mengganggu, di console atau alert? lebih baik notif ringan di result
+                const reminderMsg = "💡 Ingat: Ini hanya simulasi. Berjudi bisa menyebabkan kecanduan dan kerugian finansial. Nikmati hiburannya! 💡";
+                resultDiv.innerHTML = `⚠️ ${reminderMsg} ⚠️`;
+                setTimeout(() => {
+                    if(!spinning && lastResultIndex !== -1) {
+                        const lastPrize = SEGMENTS[lastResultIndex];
+                        resultDiv.innerHTML = `
+                            <span>🎉 HASIL: </span>
+                            <span class="prize-highlight">${lastPrize.name} — ${lastPrize.value}</span>
+                            <span style="font-size:0.8rem;"> ✨ (Putaran ke-${spinCount})</span>
+                            <div style="font-size:0.75rem; margin-top:6px;">📋 Riwayat: ${resultsHistory.slice(0,5).join(' · ')}</div>
+                        `;
+                    } else if(!spinning && spinCount ===0) {
+                        resultDiv.innerHTML = "🎯 Klik PUTAR untuk mencoba keberuntunganmu";
+                    }
+                }, 3500);
+            }
+        }
+        
+        // override updateResultDisplay untuk menyelipkan pengingat berkala
+        const originalUpdate = updateResultDisplay;
+        window.updateResultDisplay = function(idx) {
+            originalUpdate(idx);
+            showReminder();
+        };
+        updateResultDisplay = function(idx) {
+            originalUpdate(idx);
+            showReminder();
+        };
+        
+        // Re-assign closure
+        const that = this;
+        // update global
+        window.updateResultDisplay = updateResultDisplay;
+        
+        // event binding
+        spinBtn.addEventListener('click', () => {
+            if(spinning) return;
+            spinWheel();
+        });
+        
+        resetBtn.addEventListener('click', () => {
+            if(spinning) return;
+            resetStats();
+        });
+        
+        // Resize observer sederhana
+        window.addEventListener('resize', () => {
+            drawWheel();
+        });
+        
+        // Inisialisasi: buat roda dengan posisi acak kecil (tampilan netral)
+        function initWheel() {
+            resizeCanvas();
+            // set rotasi awal sedikit random tapi tidak penting
+            currentRotation = (Math.random() * Math.PI * 2) % (Math.PI*2);
+            drawWheel();
+            // kosongkan hasil riwayat
+            spinCount = 0;
+            resultsHistory = [];
+            lastResultIndex = -1;
+            resultDiv.innerHTML = "🎯 Klik PUTAR untuk mencoba keberuntunganmu";
+        }
+        
+        initWheel();
+        
+        // tambahkan peringatan ekstra pada console (bukan judi)
+        console.log("%c⚠️ RODA INI MURNI DEMO INTERAKTIF, BUKAN ALAT PERJUDIAN ⚠️", "color: #ffaa44; font-size: 16px; font-weight: bold;");
+        console.log("Setiap putaran acak tidak melibatkan transaksi uang nyata. Hati-hati terhadap praktik perjudian ilegal.");
+    })();
+</script>
+</body>
+</html>
